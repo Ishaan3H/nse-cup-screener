@@ -1,0 +1,4 @@
+#!/bin/bash
+# Convenience wrapper: runs the screener with the project's venv.
+cd "$(dirname "$0")" || exit 1
+exec .venv/bin/python -m nse_cup_screener.cli "$@"

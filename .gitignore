@@ -1,0 +1,20 @@
+# virtualenv
+.venv/
+venv/
+env/
+
+# cached market data (~21 MB, regenerated on first run)
+data/
+
+# generated reports
+out/
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# os
+.DS_Store
+Thumbs.db

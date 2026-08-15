@@ -739,7 +739,7 @@ def _cup_failures(high, low, close, L: int, B: int, R: int, p: Params) -> list[s
     fails: list[str] = []
     depth = (left_rim - bottom) / left_rim
     if not (p.min_depth <= depth <= p.max_depth):
-        fails.append(f"depth {depth:.0%} outside {p.min_depth:.0%}–{p.max_depth:.0%}")
+        fails.append(f"depth {depth:.1%} outside {p.min_depth:.1%}–{p.max_depth:.1%}")
     ll, rl = B - L, R - B
     if ll < p.min_side_len or rl < p.min_side_len:
         fails.append("one side of the cup is too short")

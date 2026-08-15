@@ -20,7 +20,7 @@ macOS ships with Python 3, which is enough. If `python3 --version` says 3.8 or
 older, install a newer one with [Homebrew](https://brew.sh): `brew install python`.
 
 ```bash
-git clone https://github.com/Ixdcodes/nse-cup-screener.git
+git clone https://github.com/Ishaan3H/nse-cup-screener.git
 cd nse-cup-screener
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
@@ -43,7 +43,7 @@ sudo apt update && sudo apt install -y python3 python3-venv python3-pip git   # 
 Then:
 
 ```bash
-git clone https://github.com/Ixdcodes/nse-cup-screener.git
+git clone https://github.com/Ishaan3H/nse-cup-screener.git
 cd nse-cup-screener
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
@@ -60,7 +60,7 @@ and **tick "Add python.exe to PATH"** on the first screen of the installer.
 Then open PowerShell or Command Prompt:
 
 ```bat
-git clone https://github.com/Ixdcodes/nse-cup-screener.git
+git clone https://github.com/Ishaan3H/nse-cup-screener.git
 cd nse-cup-screener
 py -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt

@@ -22,11 +22,12 @@ older, install a newer one with [Homebrew](https://brew.sh): `brew install pytho
 ```bash
 git clone https://github.com/Ishaan3H/nse-cup-screener.git
 cd nse-cup-screener
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-chmod +x screen
 ./screen
 ```
+
+`./screen` builds the virtual environment and installs the dependencies on
+first run, so there is nothing else to set up. The first run takes a couple of
+minutes; after that it starts immediately.
 </details>
 
 <details>
@@ -45,31 +46,55 @@ Then:
 ```bash
 git clone https://github.com/Ishaan3H/nse-cup-screener.git
 cd nse-cup-screener
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-chmod +x screen
 ./screen
 ```
+
+`./screen` builds the virtual environment and installs the dependencies on
+first run. If it reports that the venv module is missing, install
+`python3-venv` as above and run it again.
 </details>
 
 <details>
 <summary><b>Windows</b></summary>
 
-Install Python from [python.org/downloads](https://www.python.org/downloads/)
-and **tick "Add python.exe to PATH"** on the first screen of the installer.
-Then open PowerShell or Command Prompt:
+**Step 1 — check whether you already have Python.** In Command Prompt:
+
+```bat
+python --version
+```
+
+If that prints 3.9 or newer, skip to step 3.
+
+**Step 2 — install Python.** The easiest way, which puts it on PATH for you:
+
+```bat
+winget install -e --id Python.Python.3.12
+```
+
+Or download it from [python.org/downloads](https://www.python.org/downloads/)
+and **tick "Add python.exe to PATH"** on the *first* screen of the installer —
+that checkbox is off by default and is the usual reason `py` and `python` come
+back as "not recognized".
+
+> **Then close the terminal and open a new one.** An already-open Command
+> Prompt keeps the PATH it started with, so it will still report Python as
+> missing even after a successful install. This catches almost everyone.
+
+**Step 3 — get the code and run it:**
 
 ```bat
 git clone https://github.com/Ishaan3H/nse-cup-screener.git
 cd nse-cup-screener
-py -m venv .venv
-.venv\Scripts\python -m pip install -r requirements.txt
 screen.bat
 ```
 
-Use `screen.bat` wherever this README says `./screen` — for example
-`screen.bat --explain BHEL`. If `py` is not recognised, the PATH box was
-missed during install; re-run the installer and choose *Modify*.
+That is all. `screen.bat` finds your Python, builds the virtual environment and
+installs the dependencies on first run — you do not create the venv yourself.
+The first run takes a couple of minutes; after that it starts immediately.
+
+In **PowerShell**, a script in the current folder needs a `.\` prefix:
+`.\screen.bat`. Use `screen.bat` wherever this README says `./screen` — for
+example `screen.bat --explain BHEL`.
 
 No git? Download the ZIP from the repo's green **Code** button, extract it, and
 `cd` into the folder instead of cloning.
@@ -200,8 +225,17 @@ table-only report, or cap the charts:
 browser is set for `.html`. Right-click → *Open With* → your browser, or use
 the `open` / `xdg-open` / `start` command above.
 
-**`py` or `python3` not recognised (Windows)** — Python is not on PATH. Re-run
-the python.org installer, choose *Modify*, and tick *Add python.exe to PATH*.
+**`'py' is not recognized` (Windows)** — Python is either not installed or not
+on PATH. Check with `python --version`. If that fails too, install it with
+`winget install -e --id Python.Python.3.12`, then **close the terminal and open
+a new one** — an open window keeps its old PATH and will still say Python is
+missing. `screen.bat` prints these instructions itself when it cannot find an
+interpreter.
+
+**`The system cannot find the path specified` (Windows)** — this follows the
+error above: the venv was never created, so `.venv\Scripts\python` does not
+exist. Fix Python first, then just run `screen.bat`; it creates the venv for
+you. You do not need to run `py -m venv` by hand.
 
 **`No module named venv` (Linux)** — `sudo apt install python3-venv`.
 

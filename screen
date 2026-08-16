@@ -1,4 +1,51 @@
 #!/bin/bash
-# Convenience wrapper: runs the screener with the project's venv.
+# macOS/Linux launcher. Finds a usable Python, builds the virtual environment
+# on first run, then hands every argument to the screener.
 cd "$(dirname "$0")" || exit 1
+
+if [ ! -x ".venv/bin/python" ]; then
+    PY=""
+    for c in python3 python python3.13 python3.12 python3.11 python3.10; do
+        if command -v "$c" >/dev/null 2>&1 &&
+           "$c" -c 'import sys; sys.exit(0 if sys.version_info >= (3,9) else 1)' 2>/dev/null; then
+            PY="$c"
+            break
+        fi
+    done
+
+    if [ -z "$PY" ]; then
+        cat <<'MSG'
+
+  Could not find Python 3.9 or newer.
+
+      macOS:  brew install python
+      Debian/Ubuntu:  sudo apt install python3 python3-venv python3-pip
+      Fedora/RHEL:    sudo dnf install python3 python3-pip
+
+  Then run ./screen again.
+
+MSG
+        exit 1
+    fi
+
+    echo "Setting up for first use with $PY - this takes a minute."
+    if ! "$PY" -m venv .venv; then
+        echo
+        echo "  Failed to create the virtual environment."
+        echo "  On Debian/Ubuntu the venv module ships separately:"
+        echo "      sudo apt install python3-venv"
+        echo
+        exit 1
+    fi
+    .venv/bin/python -m pip install --upgrade pip >/dev/null 2>&1
+    if ! .venv/bin/python -m pip install -r requirements.txt; then
+        echo
+        echo "  Failed to install dependencies. Check your connection and retry."
+        echo
+        exit 1
+    fi
+    echo "Setup complete."
+    echo
+fi
+
 exec .venv/bin/python -m nse_cup_screener.cli "$@"

@@ -154,6 +154,54 @@ dropped: bases still deep in formation, breakouts that failed and fell back
 into the cup, and moves that have long since run away. `--stage all` keeps
 everything.
 
+## Watchlist: cups still being built
+
+```bash
+./screen --watchlist
+```
+
+Writes `out/watchlist.html` and `out/watchlist.csv` — stocks whose cup is
+**half-built**, so you can follow them before the setup is tradeable.
+
+This is staging, not forecasting, and the distinction matters. A cup's left
+half is fully observable long before the right half exists: the advance into
+the rim, the rim, the decline, the bottom. Once price turns up off that bottom,
+the stock is walking a right side toward a price level you already know. What
+this does **not** do is guess that a stock which has not yet declined will form
+a cup — there is no signal for that. Every candidate here has already put in a
+rim, a bottom, and the start of a recovery, and it fails the moment price
+undercuts the low or stops advancing.
+
+Each candidate is staged by how much of the cup's depth has been won back:
+
+| Stage | Right side |
+|---|---|
+| `BOTTOMING` | under 30% — just turning up off the low |
+| `EARLY_RIGHT` | 30–55% |
+| `MID_RIGHT` | 55–75% |
+| `APPROACHING_RIM` | over 75% — close to becoming a real candidate |
+
+**Two ETAs are given, because they fail differently.** The *symmetry* estimate
+assumes the right side takes about as long as the left, which is grounded in
+the shape but blind to price. The *rate* estimate fits the recent monthly
+advance and asks how long that pace needs to cover the remaining distance,
+which is grounded in price but flattered by a fast recent run. The reported ETA
+is the more conservative of the two, and when they disagree by more than a year
+the stock is annotated as not tracking a textbook shape. Treat both as
+extrapolation — they are the only genuinely predictive numbers in this tool,
+and they are the least reliable.
+
+To qualify, a candidate needs its rim at least 24 months back, 15–88% of the
+depth recovered, a rising right side, a shape that already curves like a cup
+(R² ≥ 0.45), and a projected total length of 36 months or more — so anything
+that completes is a 3-year-plus cup. Tuning:
+
+```bash
+./screen --watchlist --max-eta 12                    # only ones close to completing
+./screen --watchlist --min-recovery 0.5              # only well-advanced right sides
+./screen --watchlist --top 25 --no-charts            # quick table
+```
+
 ## Why isn't stock X in the list?
 
 ```bash
@@ -247,7 +295,9 @@ nse_cup_screener/
   universe.py   NSE symbol list + bulk market caps
   prices.py     monthly OHLCV download and cache
   patterns.py   detection, scoring, status  ← the core
+  forming.py    cups still under construction (the watchlist)
   report.py     HTML report and inline SVG charts
+  watchlist_report.py  the watchlist HTML
   cli.py        argument parsing and pipeline
 screen          wrapper that runs it with the project venv (macOS/Linux)
 screen.bat      the same for Windows

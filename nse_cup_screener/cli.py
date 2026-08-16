@@ -11,10 +11,12 @@ from pathlib import Path
 import pandas as pd
 
 from . import __version__
+from .forming import FormingParams, screen_forming
 from .patterns import Params, detect, explain, is_actionable, screen
 from .prices import download_monthly
 from .report import write_report
 from .universe import build_universe, write_universe
+from .watchlist_report import write_watchlist
 
 warnings.filterwarnings("ignore")
 
@@ -28,6 +30,14 @@ def build_parser() -> argparse.ArgumentParser:
         description="Screen NSE-listed stocks for cup and cup-with-handle patterns on monthly charts.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    ap.add_argument(
+        "--watchlist",
+        action="store_true",
+        help="instead of finished cups, find bases still being built and write out/watchlist.{html,csv}",
+    )
+    ap.add_argument("--min-recovery", type=float, default=FormingParams.min_recovery, help="watchlist: least of the cup depth won back")
+    ap.add_argument("--max-recovery", type=float, default=FormingParams.max_recovery, help="watchlist: most of the depth won back before it belongs to the main screen")
+    ap.add_argument("--max-eta", type=int, default=FormingParams.max_eta, help="watchlist: ignore candidates further out than this many months")
     ap.add_argument("--min-mcap", type=float, default=1000.0, help="minimum market cap in ₹ crore")
     ap.add_argument("--series", default="EQ", help="NSE series to include, comma separated")
     ap.add_argument("--symbols", default="", help="screen only these symbols (comma separated), skips the universe build")
@@ -224,6 +234,51 @@ def main(argv: list[str] | None = None) -> int:
     p = params_from_args(args)
     usable = {s: df for s, df in frames.items() if len(df) >= p.min_cup_len + 6}
     log(f"  {len(usable)} symbols with enough monthly history ({len(symbols) - len(usable)} short or missing)")
+
+    # 3a. watchlist mode ------------------------------------------------------
+    if args.watchlist:
+        fp = FormingParams(
+            min_recovery=args.min_recovery,
+            max_recovery=args.max_recovery,
+            max_eta=args.max_eta,
+        )
+        log("\n[3/4] Scanning for cups still being built")
+        rows = screen_forming(usable, meta=meta, p=p, fp=fp, log=log)
+        log(f"  {len(rows)} candidates")
+        if args.top:
+            rows = rows[: args.top]
+
+        log("\n[4/4] Writing output")
+        csv_path = out_dir / "watchlist.csv"
+        pd.DataFrame([r.to_row() for r in rows] or [{"symbol": None}]).to_csv(csv_path, index=False)
+        html_path = out_dir / "watchlist.html"
+        write_watchlist(
+            html_path,
+            rows,
+            usable,
+            fp,
+            scanned=len(usable),
+            min_market_cap_cr=args.min_mcap,
+            min_cup_len=p.min_cup_len,
+            max_charts=args.max_charts,
+            charts=not args.no_charts,
+        )
+        log(f"  {csv_path}\n  {html_path}")
+
+        if rows and not args.quiet:
+            print(f"\nWatchlist — {len(rows)} bases under construction")
+            print(
+                f"{'SYMBOL':<14}{'STAGE':<18}{'SCORE':>6}{'CLOSE':>11}{'RIM':>11}{'TO RIM':>9}"
+                f"{'DONE':>7}{'SO FAR':>8}{'ETA':>6}{'EARLIEST':>11}"
+            )
+            for r in rows[:40]:
+                print(
+                    f"{r.symbol:<14}{r.stage.lower().replace('_', ' '):<18}{r.score:>6.0f}"
+                    f"{r.last_close:>11,.2f}{r.left_rim:>11,.2f}{r.to_rim_pct:>8.0f}%"
+                    f"{r.recovery_pct:>6.0f}%{r.months_so_far:>7}m{r.eta_m:>5}m{r.projected_complete:>11}"
+                )
+        log(f"\nDone in {time.time() - started:.0f}s")
+        return 0
 
     # 3. detect ---------------------------------------------------------------
     log("\n[3/4] Scanning for cups")

@@ -77,17 +77,137 @@ No git? Download the ZIP from the repo's green **Code** button, extract it, and
 
 ## Run it
 
+> **Run it from inside the project folder.** `./screen` is a file in that
+> folder, not a system command — from anywhere else you get
+> `no such file or directory`. `cd` in first.
+
+<details open>
+<summary><b>macOS</b></summary>
+
 ```bash
-./screen
+cd ~/nse-cup-screener        # or wherever you cloned it
+./screen                     # run the screen
+open out/cup_screen.html     # open the report
 ```
 
-That is the whole thing. First run takes ~3 minutes (it downloads ~1,400
-symbols); later runs finish in ~20 seconds off the cache. Output lands in
-`out/`:
+Run both in one go:
 
-- `out/cup_screen.html` — the report: sortable table + annotated charts
-- `out/cup_screen.csv` — every match with all 40-odd measured fields
-- `out/universe.csv` — the stocks that passed the market-cap filter
+```bash
+cd ~/nse-cup-screener && ./screen && open out/cup_screen.html
+```
+</details>
+
+<details>
+<summary><b>Linux</b></summary>
+
+```bash
+cd ~/nse-cup-screener        # or wherever you cloned it
+./screen                     # run the screen
+xdg-open out/cup_screen.html # open the report
+```
+
+Run both in one go:
+
+```bash
+cd ~/nse-cup-screener && ./screen && xdg-open out/cup_screen.html
+```
+
+If `xdg-open` is missing, open `out/cup_screen.html` from your file manager, or
+`firefox out/cup_screen.html`.
+</details>
+
+<details>
+<summary><b>Windows</b></summary>
+
+Command Prompt:
+
+```bat
+cd %USERPROFILE%\nse-cup-screener
+screen.bat
+start out\cup_screen.html
+```
+
+PowerShell — same, but a script in the current folder needs the `.\` prefix:
+
+```powershell
+cd $env:USERPROFILE\nse-cup-screener
+.\screen.bat
+start out\cup_screen.html
+```
+
+Wherever the rest of this README says `./screen`, type `screen.bat` instead
+(`.\screen.bat` in PowerShell). Everything after the command is identical —
+`screen.bat --watchlist`, `screen.bat --explain BHEL`, and so on.
+</details>
+
+First run takes ~3 minutes (it downloads ~1,400 symbols); later runs finish in
+~20 seconds off the cache.
+
+### Command reference
+
+Every flag works identically on all three platforms — only the launcher differs.
+
+| What you want | macOS / Linux | Windows |
+|---|---|---|
+| The main screen | `./screen` | `screen.bat` |
+| Watchlist of cups still forming | `./screen --watchlist` | `screen.bat --watchlist` |
+| Why a stock is missing | `./screen --explain BHEL` | `screen.bat --explain BHEL` |
+| Lightweight report (opens instantly) | `./screen --no-charts` | `screen.bat --no-charts` |
+| Include bases that already ran | `./screen --include-resolved` | `screen.bat --include-resolved` |
+| Fresh data, ignore the cache | `./screen --refresh-prices` | `screen.bat --refresh-prices` |
+| All options | `./screen --help` | `screen.bat --help` |
+
+If the launcher scripts give you trouble, call the module directly — this is
+exactly what they do internally, and it works everywhere:
+
+```bash
+.venv/bin/python -m nse_cup_screener --watchlist      # macOS / Linux
+```
+```bat
+.venv\Scripts\python -m nse_cup_screener --watchlist
+```
+
+### Output
+
+Everything lands in `out/`:
+
+| File | What it is |
+|---|---|
+| `out/cup_screen.html` | the report: sortable table + annotated charts |
+| `out/cup_screen.csv` | every match, all 40-odd measured fields |
+| `out/watchlist.html` | cups still being built (with `--watchlist`) |
+| `out/watchlist.csv` | the same as data |
+| `out/universe.csv` | the stocks that passed the market-cap filter |
+
+## Troubleshooting
+
+**`./screen: no such file or directory`** — you are not in the project folder.
+`cd` into it first. On Windows use `screen.bat`, not `./screen`.
+
+**`permission denied`** on macOS/Linux — `chmod +x screen`, or run
+`.venv/bin/python -m nse_cup_screener` instead.
+
+**The report won't open, hangs, or the tab goes blank** — a wide run can
+produce 100+ charts and a multi-megabyte page. Use `--no-charts` for a
+table-only report, or cap the charts:
+
+```bash
+./screen --no-charts          # smallest, opens instantly
+./screen --max-charts 25      # keep charts, fewer of them
+```
+
+**Double-clicking the HTML opens a text editor or does nothing** — no default
+browser is set for `.html`. Right-click → *Open With* → your browser, or use
+the `open` / `xdg-open` / `start` command above.
+
+**`py` or `python3` not recognised (Windows)** — Python is not on PATH. Re-run
+the python.org installer, choose *Modify*, and tick *Add python.exe to PATH*.
+
+**`No module named venv` (Linux)** — `sudo apt install python3-venv`.
+
+**Some symbols are skipped** — recent listings, demergers and renamed tickers
+have no Yahoo history; the run logs how many. Stocks with under 42 months of
+history cannot hold a 36-month cup and are skipped too.
 
 ## What counts as a cup
 

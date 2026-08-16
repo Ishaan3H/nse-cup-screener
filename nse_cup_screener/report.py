@@ -202,7 +202,12 @@ td a{color:#7dd3fc;text-decoration:none}
 td a:hover{text-decoration:underline}
 .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:600}
 .score{font-weight:650}
-.match{background:#0e1729;border:1px solid #1e293b;border-radius:12px;padding:16px 18px;margin:14px 0}
+/* A 100+ match run is ~40k SVG nodes. content-visibility lets the browser skip
+   laying out cards that are off-screen, so the page paints immediately instead
+   of stalling on every chart at once. contain-intrinsic-size keeps the
+   scrollbar honest for the cards it has not drawn yet. */
+.match{background:#0e1729;border:1px solid #1e293b;border-radius:12px;padding:16px 18px;margin:14px 0;
+  content-visibility:auto;contain-intrinsic-size:0 560px}
 .match header{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin-bottom:2px}
 .match h3{margin:0;font-size:17px}
 .match .co{color:#94a3b8;font-size:13px;flex:1;min-width:160px}
@@ -355,6 +360,7 @@ def write_report(
     min_market_cap_cr: float,
     max_charts: int = 120,
     stage_note: str = "",
+    charts: bool = True,
 ) -> None:
     by_status: dict[str, int] = {}
     for p in patterns:
@@ -369,13 +375,17 @@ def write_report(
     ] + [(k.replace("_", " ").title(), v) for k, v in sorted(by_status.items(), key=lambda kv: -kv[1])]
     card_html = "".join(f'<div class="card"><div class="n">{v:,}</div><div class="k">{k}</div></div>' for k, v in cards)
 
-    charts = "".join(_match_block(p, frames[p.symbol]) for p in patterns[:max_charts] if p.symbol in frames)
-    more = (
-        f'<p class="sub">Charts shown for the top {max_charts} by score; the full list is in the table above '
-        f"and in the CSV.</p>"
-        if len(patterns) > max_charts
-        else ""
-    )
+    if charts:
+        chart_html = "".join(_match_block(p, frames[p.symbol]) for p in patterns[:max_charts] if p.symbol in frames)
+        more = (
+            f'<p class="sub">Charts shown for the top {max_charts} by score; the full list is in the table above '
+            f"and in the CSV.</p>"
+            if len(patterns) > max_charts
+            else ""
+        )
+    else:
+        chart_html = ""
+        more = '<p class="sub">Charts skipped (<code>--no-charts</code>). Re-run without it to draw them.</p>'
     now = datetime.now().strftime("%d %b %Y, %H:%M")
 
     doc = f"""<!doctype html>
@@ -393,7 +403,7 @@ upper half of the cup, prior advance ≥ {params.min_prior_gain:.0%}{stage_note}
 <h2>All matches</h2>
 {_table(patterns) if patterns else '<p class="sub">Nothing passed the filters this run.</p>'}
 <h2>Charts</h2>{more}
-{charts}
+{chart_html}
 <footer>Monthly bars from Yahoo Finance (split-adjusted), universe from NSE&rsquo;s official
 EQUITY_L list. Pivot = handle high, or the cup rim when there is no handle. Stop = handle low
 (cup right-side low without a handle). Screening output, not investment advice — every setup here

@@ -69,6 +69,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="keep only cups whose left rim formed before this date, e.g. 2024-01-01",
     )
     ap.add_argument("--max-charts", type=int, default=120, help="how many charts to draw in the report")
+    ap.add_argument("--no-charts", action="store_true", help="table only — smallest, fastest report to open")
 
     g = ap.add_argument_group("pattern shape")
     g.add_argument("--min-cup-len", type=int, default=Params.min_cup_len, help="minimum cup length in months")
@@ -269,6 +270,7 @@ def main(argv: list[str] | None = None) -> int:
         scanned=len(usable),
         min_market_cap_cr=args.min_mcap,
         max_charts=args.max_charts,
+        charts=not args.no_charts,
         stage_note=(
             f" · showing setups at the pivot, plus breakouts from the last "
             f"{args.breakout_age} months that have not run more than "
